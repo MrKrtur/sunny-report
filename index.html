@@ -101,11 +101,12 @@ body{margin:0;background:var(--color-bg);color:var(--color-fg);font-family:var(-
   <p class="sd-section">Occupancy</p>
   <section class="sd-card" id="kpi-card">
     <h2>Occupancy today and ahead</h2>
-    <p class="sd-note">Today: rooms sold out of all rooms, and the share. 7, 30, 60 days: average share of rooms sold over the period, starting today. New Year: 27.12–02.01. Booked this week: room nights booked Monday to today (cancellations excluded), vs the same days last week.</p>
+    <p class="sd-note">Yesterday: final result for last night. Today: rooms sold out of all rooms, and the share. 7, 30, 60 days: average share of rooms sold over the period, starting today. New Year: 27.12–02.01. Booked this week: room nights booked Monday to today (cancellations excluded), vs the same days last week.</p>
     <div class="sd-tablebox">
       <table class="sd-table" id="kpi-table" data-source="kpi" data-row-key="property">
         <thead><tr>
           <th data-field="property">Property</th>
+          <th data-field="occ_yesterday">Yesterday</th>
           <th data-field="occ_today">Today</th>
           <th data-field="occ_7d">7 days</th>
           <th data-field="occ_30d">30 days</th>
@@ -120,19 +121,22 @@ body{margin:0;background:var(--color-bg);color:var(--color-fg);font-family:var(-
   </section>
 
   <section class="sd-card" id="rev-card">
-    <h2>ADR and RevPAR, next 30 days</h2>
-    <p class="sd-note">ADR: average price per sold room night (OTA bookings in SiteMinder, IDR incl. taxes, before OTA commission). RevPAR: ADR × occupancy, i.e. revenue per available room night. Occupancy: share of rooms sold over the next 30 days.</p>
+    <h2>ADR and RevPAR</h2>
+    <p class="sd-note">ADR: average price per sold room night (OTA bookings in SiteMinder, IDR incl. taxes, before OTA commission). RevPAR: ADR × occupancy, i.e. revenue per available room night. Yesterday: last night, final. Next 30 days: on the books now.</p>
     <div class="sd-tablebox">
       <table class="sd-table" id="rev-table" data-source="kpi" data-row-key="property">
         <thead><tr>
           <th data-field="property">Property</th>
-          <th data-field="adr_30d">ADR</th>
-          <th data-field="occ_30d">Occupancy</th>
-          <th data-field="revpar_30d">RevPAR</th>
+          <th data-field="adr_yesterday">ADR yesterday</th>
+          <th data-field="revpar_yesterday">RevPAR yesterday</th>
+          <th data-field="adr_30d">ADR 30 days</th>
+          <th data-field="occ_30d">Occupancy 30 days</th>
+          <th data-field="revpar_30d">RevPAR 30 days</th>
         </tr></thead>
         <tbody></tbody>
       </table>
     </div>
+    <p class="sd-note">Chart: next 30 days.</p>
     <div class="sd-legend" id="rev-legend"><span><i style="background:var(--rev-adr)"></i>ADR</span><span><i style="background:var(--rev-revpar)"></i>RevPAR</span></div>
     <div class="sd-chart" id="rev-chart" data-source="kpi"></div>
   </section>
@@ -211,6 +215,7 @@ dash.onData(() => {
     const tr = document.createElement('tr');
     if (sdIsTotal(r)) tr.style.fontWeight = 'var(--cds-font-weight-medium)';
     tr.appendChild(cell(r.property));
+    tr.appendChild(cell(r.occ_yesterday != null ? `${r.occ_yesterday} of ${r.rooms} · ${f.pct(r.occ_yesterday/r.rooms)}` : '—', r.occ_yesterday != null ? tone(r.occ_yesterday/r.rooms) : ''));
     tr.appendChild(cell(`${r.occ_today} of ${r.rooms} · ${f.pct(r.occ_today/r.rooms)}`, tone(r.occ_today/r.rooms)));
     tr.appendChild(cell(f.pct(r.occ_7d), tone(r.occ_7d)));
     tr.appendChild(cell(f.pct(r.occ_30d), tone(r.occ_30d)));
@@ -237,6 +242,8 @@ dash.onData(() => {
     const tr = document.createElement('tr');
     if (sdIsTotal(r)) tr.style.fontWeight = 'var(--cds-font-weight-medium)';
     tr.appendChild(cell(r.property));
+    tr.appendChild(cell(r.adr_yesterday ? f.mln(r.adr_yesterday) : '—'));
+    tr.appendChild(cell(r.revpar_yesterday ? f.mln(r.revpar_yesterday) : '—'));
     tr.appendChild(cell(r.adr_30d ? f.mln(r.adr_30d) : '—'));
     tr.appendChild(cell(f.pct(r.occ_30d)));
     tr.appendChild(cell(r.revpar_30d ? f.mln(r.revpar_30d) : '—'));
