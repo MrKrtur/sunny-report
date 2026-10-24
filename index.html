@@ -1,0 +1,347 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Sunny Daily Report</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Source+Serif+4:wght@400;500&display=swap" rel="stylesheet">
+<script src="d3.min.js"></script>
+<style>
+:root{
+  --font-anthropic-sans:"Inter",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --font-anthropic-serif:"Source Serif 4",Georgia,serif;
+  --color-fg:#1f1e1c;--color-fg-muted:#6b6862;--color-bg:#faf9f6;--color-panel:#ffffff;--color-border-line:#e6e3dc;
+  --color-ok:#2e7d4f;--color-warn:#b26a00;--color-bad:#c0392b;
+  --cds-gap-xs:.35rem;--cds-gap-sm:.6rem;--cds-gap-md:1rem;--cds-gap-lg:1.5rem;
+  --cds-pad-xs:.35rem;--cds-pad-sm:.6rem;--cds-pad-md:1rem;--cds-pad-lg:1.25rem;
+  --cds-radius:10px;--cds-font-size-title:clamp(1.6rem,4vw,2.3rem);--cds-font-size-heading:1.05rem;--cds-font-size-body:.95rem;--cds-font-size-caption:.8rem;--cds-font-weight-medium:600;
+  --cds-surface-popover:#ffffff;--cds-border:#e6e3dc;--cds-shadow-popover:0 4px 16px rgba(0,0,0,.12);--cds-text-secondary:#6b6862;
+  --cds-chart-grid:#ece9e2;--cds-chart-axis:#c9c5bb;--cds-chart-reference:#9a958a;--cds-chart-muted:#c9c5bb;--cds-chart-status-critical:#c0392b;--cds-dur-slow:.4s;
+}
+@media (prefers-color-scheme: dark){:root{
+  --color-fg:#ecebe7;--color-fg-muted:#a9a59c;--color-bg:#1c1b19;--color-panel:#262522;--color-border-line:#3a3833;
+  --color-ok:#5cb87f;--color-warn:#e0a03c;--color-bad:#e5675a;
+  --cds-surface-popover:#2e2d29;--cds-border:#3a3833;--cds-text-secondary:#a9a59c;
+  --cds-chart-grid:#33312d;--cds-chart-axis:#55524b;--cds-chart-reference:#8a857a;--cds-chart-muted:#55524b;--cds-chart-status-critical:#e5675a;
+}}
+html{background:var(--color-bg)}
+body{margin:0;background:var(--color-bg);color:var(--color-fg);font-family:var(--font-anthropic-sans)}
+#dash-root{padding:24px 16px 48px}
+.dash-skeleton{color:var(--color-fg-muted)}
+</style>
+<script>
+(function(){
+  var light=['#2f6fb3','#d9822b','#3a9a5b','#a855b5','#c0392b','#7a8b2a','#1f9aa3','#8c6d4f'];
+  var dark=['#6aa4e0','#f0a457','#6cc58c','#c98ad6','#e5675a','#b4c25a','#4fc4cc','#c4a07e'];
+  var mq=window.matchMedia('(prefers-color-scheme: dark)');
+  var store={}, fns=[], ids=['kpi','forward','pickup','channels','alerts','rates'];
+  ids.forEach(function(id){store[id]={status:'loading',data:[],message:'',refreshing:false,meta:[]};});
+  function run(){window.dash.colors=mq.matches?dark:light;fns.forEach(function(f){try{f();}catch(e){console.error(e);}});}
+  window.dash={colors:mq.matches?dark:light,data:function(id){return store[id]||{status:'missing',data:[]};},onData:function(fn){fns.push(fn);try{fn();}catch(e){console.error(e);}}};
+  var v='?v='+Date.now();
+  function setText(id,t){var el=document.getElementById(id);if(el&&t)el.textContent=t;}
+  document.addEventListener('DOMContentLoaded',function(){
+    fetch('data/meta.json'+v).then(function(r){return r.json();}).then(function(m){window.sdMeta=m;setText('meta-date',m.report_date);setText('meta-channels',m.channels_note);setText('meta-footer',m.footer);document.title='Sunny Daily Report · '+m.report_date;run();}).catch(function(){});
+    Promise.all(ids.map(function(id){return fetch('data/'+id+'.json'+v).then(function(r){if(!r.ok)throw new Error(r.status);return r.json();}).then(function(d){store[id]={status:'ok',data:d,message:'',refreshing:false,meta:[],columns:d.length?Object.keys(d[0]):[]};}).catch(function(e){store[id]={status:'error',data:[],message:String(e)};});})).then(run);
+    var t;window.addEventListener('resize',function(){clearTimeout(t);t=setTimeout(run,150);});
+    mq.addEventListener&&mq.addEventListener('change',run);
+  });
+})();
+</script>
+<style>
+.sd-wrap{max-width:1180px;margin-inline:auto;display:flex;flex-direction:column;gap:var(--cds-gap-lg);font-family:var(--font-anthropic-sans);font-variant-numeric:tabular-nums}
+.sd-head h1{font-family:var(--font-anthropic-serif);font-weight:400;font-size:var(--cds-font-size-title);margin:0;text-wrap:balance}
+.sd-head p{margin:var(--cds-gap-xs) 0 0;color:var(--color-fg-muted);font-size:var(--cds-font-size-body);max-width:70ch}
+.sd-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,22rem),1fr));gap:var(--cds-gap-md)}
+.sd-card{background:var(--color-panel);border:1px solid var(--color-border-line);border-radius:var(--cds-radius);padding:var(--cds-pad-lg);min-width:0;display:flex;flex-direction:column;gap:var(--cds-gap-sm)}
+.sd-card h2{margin:0;font-size:var(--cds-font-size-heading);font-weight:var(--cds-font-weight-medium)}
+.sd-note{margin:0;color:var(--color-fg-muted);font-size:var(--cds-font-size-caption)}
+.sd-section{margin:var(--cds-gap-sm) 0 0;font-size:var(--cds-font-size-caption);text-transform:uppercase;letter-spacing:.06em;color:var(--color-fg-muted)}
+.sd-tg{background:var(--color-bg);border:1px solid var(--color-border-line);border-radius:var(--cds-radius);padding:var(--cds-pad-md);white-space:pre-wrap;font-size:var(--cds-font-size-body);line-height:1.5;min-height:18rem}
+.sd-tablebox{overflow-x:auto}
+.sd-table{width:100%;border-collapse:collapse;font-size:var(--cds-font-size-body)}
+.sd-table th{text-align:right;font-weight:var(--cds-font-weight-medium);color:var(--color-fg-muted);font-size:var(--cds-font-size-caption);padding:var(--cds-pad-xs) var(--cds-pad-sm);border-bottom:1px solid var(--color-border-line);white-space:nowrap}
+.sd-table td{text-align:right;padding:var(--cds-pad-xs) var(--cds-pad-sm);border-bottom:1px solid var(--color-border-line);white-space:nowrap}
+.sd-table th:first-child,.sd-table td:first-child{text-align:left}
+.sd-good{color:var(--color-ok)}.sd-warn{color:var(--color-warn)}.sd-bad{color:var(--color-bad)}
+.sd-chart{position:relative;min-height:240px}
+.sd-chart svg text{fill:var(--color-fg-muted);font-size:11px;font-family:var(--font-anthropic-sans)}
+.sd-tip{position:absolute;pointer-events:none;background:var(--cds-surface-popover);border:1px solid var(--cds-border);border-radius:var(--cds-radius);box-shadow:var(--cds-shadow-popover);padding:var(--cds-pad-xs) var(--cds-pad-sm);font-size:var(--cds-font-size-caption);white-space:nowrap}
+.sd-tip .d{color:var(--cds-text-secondary)}
+.sd-legend{display:flex;gap:var(--cds-gap-md);flex-wrap:wrap;font-size:var(--cds-font-size-caption);color:var(--color-fg-muted)}
+.sd-legend i{display:inline-block;width:.7rem;height:.7rem;border-radius:2px;margin-right:.35rem;vertical-align:-1px}
+.sd-alerts{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:var(--cds-gap-xs);min-height:8rem}
+.sd-alerts li{display:grid;grid-template-columns:auto 1fr;gap:var(--cds-gap-sm);align-items:start;padding:var(--cds-pad-xs) 0;border-bottom:1px solid var(--color-border-line);font-size:var(--cds-font-size-body)}
+.sd-alerts .pill{font-size:var(--cds-font-size-caption);padding:1px 8px;border-radius:999px;border:1px solid currentColor;white-space:nowrap}
+.sd-alerts .prop{color:var(--color-fg-muted);font-size:var(--cds-font-size-caption);display:block}
+.sd-bars{display:flex;flex-direction:column;gap:var(--cds-gap-xs);min-height:10rem}
+.sd-bar{display:grid;grid-template-columns:minmax(7rem,10rem) 1fr auto;gap:var(--cds-gap-sm);align-items:center;font-size:var(--cds-font-size-body)}
+.sd-bar .track{height:14px;border-radius:4px;background:var(--cds-chart-grid);overflow:hidden}
+.sd-bar .fill{height:100%;border-radius:4px}
+.sd-bar .val{min-width:6.5rem;text-align:right}
+.sd-foot{color:var(--color-fg-muted);font-size:var(--cds-font-size-caption);max-width:80ch}
+[data-dash-source-state=empty]{color:transparent}
+[data-dash-source-state=refreshing]{opacity:.5;transition:opacity var(--cds-dur-slow)}
+.sd-fail{display:flex;align-items:center;justify-content:center;gap:.4rem;min-height:inherit;color:var(--color-fg-muted);font-size:var(--cds-font-size-caption)}
+.sd-fail:before{content:"";width:.375rem;height:.375rem;border-radius:50%;background:var(--color-bad)}
+</style>
+</head>
+<body>
+<div id="dash-root">
+
+
+<div class="sd-wrap">
+  <header class="sd-head" id="top">
+    <h1>Sunny Daily Report · <span id="meta-date">—</span></h1>
+    <p id="takeaway" data-source="kpi" class="dash-skeleton">—</p>
+  </header>
+
+  <div class="sd-grid">
+    <section class="sd-card" id="alerts-card">
+      <h2>Alerts and actions</h2>
+      <p class="sd-note">Red: act today. Amber: watch. Green: good news or fixed.</p>
+      <ul class="sd-alerts dash-skeleton" id="alerts" data-source="alerts"></ul>
+    </section>
+
+    <section class="sd-card" id="telegram">
+      <h2>Summary</h2>
+      <p class="sd-note">The key numbers in a few lines. Updated every evening at 21:00 Bali time</p>
+      <div class="sd-tg dash-skeleton" id="tg" data-source="kpi alerts"></div>
+    </section>
+  </div>
+
+  <p class="sd-section">Occupancy</p>
+  <section class="sd-card" id="kpi-card">
+    <h2>Occupancy today and ahead</h2>
+    <p class="sd-note">Today: rooms sold out of all rooms. Ahead: average share of rooms sold over the period, starting today. New bookings: room nights booked (cancellations excluded). This week means Monday to today, so it is not a full week yet.</p>
+    <div class="sd-tablebox">
+      <table class="sd-table" id="kpi-table" data-source="kpi" data-row-key="property">
+        <thead><tr>
+          <th data-field="property">Property</th>
+          <th data-field="occ_today">Today</th>
+          <th data-field="occ_7d">Next 7 days</th>
+          <th data-field="occ_30d">Next 30 days</th>
+          <th data-field="occ_60d">Next 60 days</th>
+          <th data-field="occ_ny">New Year 27.12–02.01</th>
+          <th data-field="pickup_week">New bookings this week</th>
+          <th data-field="pickup_prev_week">Last week</th>
+        </tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="sd-card" id="forward-card">
+    <h2>Occupancy for the next 60 days</h2>
+    <p class="sd-note">Share of rooms sold for each night. The lower the line, the more rooms we still need to sell.</p>
+    <div class="sd-legend" id="fwd-legend" data-source="forward"></div>
+    <div class="sd-chart" id="fwd" data-source="forward"></div>
+  </section>
+
+  <p class="sd-section">Sales and prices</p>
+  <div class="sd-grid">
+    <section class="sd-card" id="pickup-card">
+      <h2>New bookings by week</h2>
+      <p class="sd-note">Room nights booked each week (by booking date). The earliest sign that sales are slowing. The last week is Monday to today.</p>
+      <div class="sd-legend" id="pick-legend" data-source="pickup"></div>
+      <div class="sd-chart" id="pick" data-source="pickup"></div>
+    </section>
+
+    <section class="sd-card" id="channels-card">
+      <h2>Where bookings came from this month</h2>
+      <p class="sd-note" id="meta-channels">—</p>
+      <div class="sd-bars dash-skeleton" id="channels" data-source="channels"></div>
+    </section>
+
+    <section class="sd-card" id="rates-card">
+      <h2>Samudra price vs competitors</h2>
+      <p class="sd-note">Guest price per night, IDR</p>
+      <div class="sd-bars dash-skeleton" id="rates" data-source="rates"></div>
+    </section>
+  </div>
+
+  <p class="sd-foot" id="meta-footer">—</p>
+</div>
+
+<script>
+window.sdFmt = {
+  pct: d3.format('.0%'),
+  int: d3.format(','),
+  mln: v => (v/1e6).toLocaleString('en-US',{maximumFractionDigits:2}) + 'M',
+  short: p => p.replace('Sunny ','')
+};
+window.sdFail = el => { el.classList.remove('dash-skeleton'); el.innerHTML=''; const f=document.createElement('div'); f.className='sd-fail'; f.textContent='Failed to load'; el.appendChild(f); };
+window.sdIsTotal = r => r.property === 'All properties';
+</script>
+
+<script>
+dash.onData(() => {
+  const k = dash.data('kpi'), a = dash.data('alerts');
+  const take = document.getElementById('takeaway'), tg = document.getElementById('tg');
+  if (k.status === 'error') { sdFail(take); sdFail(tg); return; }
+  if (k.status !== 'ok') { take.textContent = '—'; return; }
+  take.classList.remove('dash-skeleton');
+  const f = sdFmt;
+  const props = k.data.filter(r => !sdIsTotal(r));
+  const tot = k.data.find(sdIsTotal);
+  const worst = props.slice().sort((x,y)=>x.occ_30d-y.occ_30d)[0];
+  take.textContent = `Today ${tot.occ_today} of ${tot.rooms} rooms are sold (${f.pct(tot.occ_today/tot.rooms)}). For the next 30 days only ${f.pct(tot.occ_30d)} is sold. Weakest is ${f.short(worst.property)} at ${f.pct(worst.occ_30d)}.`;
+  if (a.status !== 'ok') return;
+  tg.classList.remove('dash-skeleton');
+  const icon = {red:'🔴', amber:'🟡', green:'🟢'};
+  const lines = [(window.sdMeta&&sdMeta.summary_title)||'Sunny Daily Report', ''];
+  props.forEach(r => {
+    lines.push(`${f.short(r.property)}: today ${r.occ_today}/${r.rooms} (${f.pct(r.occ_today/r.rooms)}), 30 days ${f.pct(r.occ_30d)}, New Year ${f.pct(r.occ_ny)}`);
+  });
+  lines.push(`All: today ${f.pct(tot.occ_today/tot.rooms)}, 30 days ${f.pct(tot.occ_30d)}`);
+  lines.push('', `New bookings this week so far: ${tot.pickup_week} nights, same days last week ${tot.pickup_prev_week}`);
+  lines.push('', 'Alerts:');
+  a.data.filter(x=>x.level!=='green').forEach(x => lines.push(`${icon[x.level]} ${f.short(x.property)}: ${x.text}`));
+  tg.textContent = lines.join('\n');
+});
+</script>
+
+<script>
+dash.onData(() => {
+  const d = dash.data('alerts'), ul = document.getElementById('alerts');
+  if (d.status === 'error') return sdFail(ul);
+  if (d.status !== 'ok') return;
+  ul.classList.remove('dash-skeleton'); ul.innerHTML = '';
+  const cls = {red:'sd-bad', amber:'sd-warn', green:'sd-good'}, name = {red:'today', amber:'watch', green:'good'};
+  d.data.forEach(x => {
+    const li = document.createElement('li');
+    const p = document.createElement('span'); p.className = 'pill ' + cls[x.level]; p.textContent = name[x.level];
+    const t = document.createElement('div'); const pr = document.createElement('span'); pr.className='prop'; pr.textContent = x.property;
+    t.appendChild(pr); t.appendChild(document.createTextNode(x.text));
+    li.appendChild(p); li.appendChild(t); ul.appendChild(li);
+  });
+});
+</script>
+
+<script>
+dash.onData(() => {
+  const d = dash.data('kpi'), tb = document.querySelector('#kpi-table tbody');
+  tb.innerHTML = '';
+  if (d.status !== 'ok') return;
+  const f = sdFmt;
+  const cell = (v, c) => { const td = document.createElement('td'); td.textContent = v; if (c) td.className = c; return td; };
+  const tone = v => v < 0.3 ? 'sd-bad' : v < 0.5 ? 'sd-warn' : '';
+  d.data.forEach(r => {
+    const tr = document.createElement('tr');
+    if (sdIsTotal(r)) tr.style.fontWeight = 'var(--cds-font-weight-medium)';
+    tr.appendChild(cell(r.property));
+    tr.appendChild(cell(`${r.occ_today} of ${r.rooms}`, tone(r.occ_today/r.rooms)));
+    tr.appendChild(cell(f.pct(r.occ_7d), tone(r.occ_7d)));
+    tr.appendChild(cell(f.pct(r.occ_30d), tone(r.occ_30d)));
+    tr.appendChild(cell(f.pct(r.occ_60d), tone(r.occ_60d)));
+    tr.appendChild(cell(f.pct(r.occ_ny), tone(r.occ_ny)));
+    tr.appendChild(cell(f.int(r.pickup_week) + ' nights', r.pickup_week < r.pickup_prev_week ? 'sd-bad' : 'sd-good'));
+    tr.appendChild(cell(f.int(r.pickup_prev_week) + ' nights'));
+    tb.appendChild(tr);
+  });
+});
+</script>
+
+<script>
+dash.onData(() => {
+  const d = dash.data('forward'), box = document.getElementById('fwd'), leg = document.getElementById('fwd-legend');
+  box.innerHTML = ''; leg.innerHTML = '';
+  if (d.status === 'error') return sdFail(box);
+  if (d.status !== 'ok') return;
+  const rows = d.data.map(r => ({...r, t: new Date(r.date)}));
+  const props = Array.from(new Set(rows.map(r => r.property)));
+  props.forEach((p,i) => { const s=document.createElement('span'); const sw=document.createElement('i'); sw.style.background=dash.colors[i]; s.appendChild(sw); s.appendChild(document.createTextNode(sdFmt.short(p))); leg.appendChild(s); });
+  const W = box.clientWidth || 600, H = 240, m = {t:10, r:16, b:24, l:38};
+  const x = d3.scaleUtc(d3.extent(rows, r => r.t), [m.l, W - m.r]);
+  const y = d3.scaleLinear([0, 1], [H - m.b, m.t]);
+  const svg = d3.select(box).append('svg').attr('width','100%').attr('viewBox',`0 0 ${W} ${H}`);
+  svg.append('g').selectAll('line').data(y.ticks(4)).join('line').attr('x1',m.l).attr('x2',W-m.r).attr('y1',y).attr('y2',y).attr('stroke','var(--cds-chart-grid)');
+  svg.append('g').attr('transform',`translate(${m.l},0)`).call(d3.axisLeft(y).ticks(4).tickFormat(d3.format('.0%')).tickSize(0)).attr('font-size',null).attr('font-family',null).call(g=>g.select('.domain').remove());
+  const xt = W < 480 ? 4 : 8;
+  svg.append('g').attr('transform',`translate(0,${H-m.b})`).call(d3.axisBottom(x).ticks(xt).tickFormat(d3.utcFormat('%d.%m')).tickSize(0)).attr('font-size',null).attr('font-family',null).call(g=>g.select('.domain').attr('stroke','var(--cds-chart-axis)'));
+  svg.append('line').attr('x1',m.l).attr('x2',W-m.r).attr('y1',y(0.4)).attr('y2',y(0.4)).attr('stroke','var(--cds-chart-reference)').attr('stroke-dasharray','4 4');
+  svg.append('text').attr('x',W-m.r).attr('y',y(0.4)-4).attr('text-anchor','end').text('40% line');
+  props.forEach((p,i) => {
+    const s = rows.filter(r => r.property === p);
+    svg.append('path').datum(s).attr('fill','none').attr('stroke',dash.colors[i]).attr('stroke-width',2).attr('stroke-linejoin','round').attr('stroke-linecap','round').attr('d', d3.line(r=>x(r.t), r=>y(r.occ)));
+  });
+  const tip = document.createElement('div'); tip.className='sd-tip'; tip.hidden = true; box.appendChild(tip);
+  const dates = Array.from(new Set(rows.map(r=>r.date)));
+  const dot = svg.append('g');
+  svg.append('rect').attr('x',m.l).attr('y',m.t).attr('width',W-m.l-m.r).attr('height',H-m.t-m.b).attr('fill','transparent')
+    .on('mousemove', (ev) => {
+      const [mx] = d3.pointer(ev); const t = x.invert(mx);
+      const day = dates.reduce((a,b)=> Math.abs(new Date(b)-t) < Math.abs(new Date(a)-t) ? b : a);
+      const pts = rows.filter(r=>r.date===day);
+      dot.selectAll('circle').data(pts).join('circle').attr('r',4).attr('cx',r=>x(r.t)).attr('cy',r=>y(r.occ)).attr('fill',r=>dash.colors[props.indexOf(r.property)]);
+      tip.hidden = false; tip.innerHTML = '';
+      const h = document.createElement('div'); h.className='d'; h.textContent = d3.utcFormat('%d.%m.%Y')(new Date(day)); tip.appendChild(h);
+      pts.forEach(r => { const l=document.createElement('div'); l.textContent = `${sdFmt.short(r.property)}: ${sdFmt.pct(r.occ)} (${r.rooms_sold} rooms)`; tip.appendChild(l); });
+      const px = x(new Date(day)) / W * box.clientWidth;
+      tip.style.left = Math.min(Math.max(0, px - 70), box.clientWidth - 170) + 'px'; tip.style.top = '4px';
+    })
+    .on('mouseleave', () => { tip.hidden = true; dot.selectAll('circle').remove(); });
+});
+</script>
+
+<script>
+dash.onData(() => {
+  const d = dash.data('pickup'), box = document.getElementById('pick'), leg = document.getElementById('pick-legend');
+  box.innerHTML = ''; leg.innerHTML = '';
+  if (d.status === 'error') return sdFail(box);
+  if (d.status !== 'ok') return;
+  const props = Array.from(new Set(d.data.map(r=>r.property)));
+  const weeks = Array.from(new Set(d.data.map(r=>r.week)));
+  props.forEach((p,i) => { const s=document.createElement('span'); const sw=document.createElement('i'); sw.style.background=dash.colors[i]; s.appendChild(sw); s.appendChild(document.createTextNode(sdFmt.short(p))); leg.appendChild(s); });
+  const W = box.clientWidth || 400, H = 240, m = {t:10, r:8, b:24, l:32};
+  const x0 = d3.scaleBand(weeks, [m.l, W-m.r]).padding(0.25);
+  const x1 = d3.scaleBand(props, [0, x0.bandwidth()]).padding(0.1);
+  const y = d3.scaleLinear([0, d3.max(d.data, r=>r.nights)*1.1], [H-m.b, m.t]);
+  const svg = d3.select(box).append('svg').attr('width','100%').attr('viewBox',`0 0 ${W} ${H}`);
+  svg.append('g').selectAll('line').data(y.ticks(4)).join('line').attr('x1',m.l).attr('x2',W-m.r).attr('y1',y).attr('y2',y).attr('stroke','var(--cds-chart-grid)');
+  svg.append('g').attr('transform',`translate(${m.l},0)`).call(d3.axisLeft(y).ticks(4).tickSize(0)).attr('font-size',null).attr('font-family',null).call(g=>g.select('.domain').remove());
+  const fmtW = w => d3.utcFormat('%d.%m')(new Date(w));
+  const step = W < 420 ? 2 : 1;
+  svg.append('g').attr('transform',`translate(0,${H-m.b})`).call(d3.axisBottom(x0).tickValues(weeks.filter((w,i)=>i%step===0)).tickFormat(fmtW).tickSize(0)).attr('font-size',null).attr('font-family',null).call(g=>g.select('.domain').attr('stroke','var(--cds-chart-axis)'));
+  const tip = document.createElement('div'); tip.className='sd-tip'; tip.hidden = true; box.appendChild(tip);
+  svg.append('g').selectAll('rect').data(d.data).join('rect')
+    .attr('x', r => x0(r.week) + x1(r.property)).attr('width', x1.bandwidth())
+    .attr('y', r => y(r.nights)).attr('height', r => y(0) - y(r.nights)).attr('rx', 3)
+    .attr('fill', r => dash.colors[props.indexOf(r.property)])
+    .on('mousemove', (ev, r) => { tip.hidden=false; tip.innerHTML=''; const h=document.createElement('div'); h.className='d'; h.textContent='Week of '+fmtW(r.week); const l=document.createElement('div'); l.textContent=`${sdFmt.short(r.property)}: ${r.nights} nights`; tip.appendChild(h); tip.appendChild(l); const px=(x0(r.week)+x1(r.property))/W*box.clientWidth; tip.style.left=Math.min(Math.max(0,px-60), box.clientWidth-150)+'px'; tip.style.top='4px'; })
+    .on('mouseleave', () => tip.hidden = true);
+});
+</script>
+
+<script>
+window.sdBars = (id, ds, label, value, fmt, color) => {
+  const d = dash.data(ds), box = document.getElementById(id);
+  if (d.status === 'error') return sdFail(box);
+  if (d.status !== 'ok') return;
+  box.classList.remove('dash-skeleton'); box.innerHTML = '';
+  const max = d3.max(d.data, r => value(r) || 0) || 1;
+  d.data.forEach((r, i) => {
+    const row = document.createElement('div'); row.className = 'sd-bar';
+    const n = document.createElement('span'); n.textContent = label(r);
+    const tr = document.createElement('div'); tr.className = 'track';
+    const fl = document.createElement('div'); fl.className = 'fill'; fl.style.width = ((value(r)||0)/max*100) + '%'; fl.style.background = color(r, i);
+    tr.appendChild(fl);
+    const v = document.createElement('span'); v.className = 'val'; v.textContent = fmt(r);
+    row.appendChild(n); row.appendChild(tr); row.appendChild(v); box.appendChild(row);
+  });
+};
+dash.onData(() => {
+  sdBars('rates', 'rates', r => r.hotel, r => r.price,
+    r => r.price == null ? r.note : sdFmt.mln(r.price),
+    (r, i) => i === 0 ? dash.colors[0] : 'var(--cds-chart-muted)');
+  sdBars('channels', 'channels', r => r.channel, r => r.nights,
+    r => r.nights === 0 ? '0, check' : r.nights + ' nights',
+    (r) => r.nights === 0 ? 'var(--cds-chart-status-critical)' : dash.colors[1]);
+});
+</script>
+
+</div>
+</body>
+</html>
