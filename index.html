@@ -101,7 +101,7 @@ body{margin:0;background:var(--color-bg);color:var(--color-fg);font-family:var(-
   <p class="sd-section">Occupancy</p>
   <section class="sd-card" id="kpi-card">
     <h2>Occupancy today and ahead</h2>
-    <p class="sd-note">Today: rooms sold out of all rooms, and the share. 7, 30, 60 days: average share of rooms sold over the period, starting today. New Year: 27.12–02.01. ADR 30d: average price per sold room night over the next 30 days (OTA bookings in SiteMinder, IDR incl. taxes, before OTA commission). RevPAR 30d: ADR × occupancy, i.e. revenue per available room night. Booked this week: room nights booked Monday to today (cancellations excluded), vs the same days last week.</p>
+    <p class="sd-note">Today: rooms sold out of all rooms, and the share. 7, 30, 60 days: average share of rooms sold over the period, starting today. New Year: 27.12–02.01. Booked this week: room nights booked Monday to today (cancellations excluded), vs the same days last week.</p>
     <div class="sd-tablebox">
       <table class="sd-table" id="kpi-table" data-source="kpi" data-row-key="property">
         <thead><tr>
@@ -111,14 +111,30 @@ body{margin:0;background:var(--color-bg);color:var(--color-fg);font-family:var(-
           <th data-field="occ_30d">30 days</th>
           <th data-field="occ_60d">60 days</th>
           <th data-field="occ_ny">New Year</th>
-          <th data-field="adr_30d">ADR 30d</th>
-          <th data-field="revpar_30d">RevPAR 30d</th>
           <th data-field="pickup_week">Booked this week</th>
           <th data-field="pickup_prev_week">Last week</th>
         </tr></thead>
         <tbody></tbody>
       </table>
     </div>
+  </section>
+
+  <section class="sd-card" id="rev-card">
+    <h2>ADR and RevPAR, next 30 days</h2>
+    <p class="sd-note">ADR: average price per sold room night (OTA bookings in SiteMinder, IDR incl. taxes, before OTA commission). RevPAR: ADR × occupancy, i.e. revenue per available room night. Occupancy: share of rooms sold over the next 30 days.</p>
+    <div class="sd-tablebox">
+      <table class="sd-table" id="rev-table" data-source="kpi" data-row-key="property">
+        <thead><tr>
+          <th data-field="property">Property</th>
+          <th data-field="adr_30d">ADR</th>
+          <th data-field="occ_30d">Occupancy</th>
+          <th data-field="revpar_30d">RevPAR</th>
+        </tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+    <div class="sd-legend" id="rev-legend"><span><i style="background:var(--rev-adr)"></i>ADR</span><span><i style="background:var(--rev-revpar)"></i>RevPAR</span></div>
+    <div class="sd-chart" id="rev-chart" data-source="kpi"></div>
   </section>
 
   <section class="sd-card" id="forward-card">
@@ -178,7 +194,6 @@ dash.onData(() => {
   const f = sdFmt, props = k.data.filter(r => !sdIsTotal(r)), tot = k.data.find(sdIsTotal);
   const worst = props.slice().sort((x,y)=>x.occ_30d-y.occ_30d)[0];
   let t = `Today ${tot.occ_today} of ${tot.rooms} rooms are sold (${f.pct(tot.occ_today/tot.rooms)}). Next 30 days: ${f.pct(tot.occ_30d)} sold`;
-  if (tot.adr_30d) t += `, ADR ${f.mln(tot.adr_30d)}, RevPAR ${f.mln(tot.revpar_30d)}`;
   t += `. Weakest is ${f.short(worst.property)} at ${f.pct(worst.occ_30d)}.`;
   take.textContent = t;
 });
@@ -201,11 +216,50 @@ dash.onData(() => {
     tr.appendChild(cell(f.pct(r.occ_30d), tone(r.occ_30d)));
     tr.appendChild(cell(f.pct(r.occ_60d), tone(r.occ_60d)));
     tr.appendChild(cell(f.pct(r.occ_ny), tone(r.occ_ny)));
-    tr.appendChild(cell(r.adr_30d ? f.mln(r.adr_30d) : '—'));
-    tr.appendChild(cell(r.revpar_30d ? f.mln(r.revpar_30d) : '—'));
     tr.appendChild(cell(f.int(r.pickup_week) + ' nights', r.pickup_week < r.pickup_prev_week ? 'sd-bad' : 'sd-good'));
     tr.appendChild(cell(f.int(r.pickup_prev_week) + ' nights'));
     tb.appendChild(tr);
+  });
+});
+</script>
+
+<script>
+dash.onData(() => {
+  const d = dash.data('kpi'), tb = document.querySelector('#rev-table tbody'), box = document.getElementById('rev-chart');
+  tb.innerHTML = ''; box.innerHTML = '';
+  document.documentElement.style.setProperty('--rev-adr', dash.colors[0]);
+  document.documentElement.style.setProperty('--rev-revpar', dash.colors[1]);
+  if (d.status === 'error') return sdFail(box);
+  if (d.status !== 'ok') return;
+  const f = sdFmt;
+  const cell = (v) => { const td = document.createElement('td'); td.textContent = v; return td; };
+  d.data.forEach(r => {
+    const tr = document.createElement('tr');
+    if (sdIsTotal(r)) tr.style.fontWeight = 'var(--cds-font-weight-medium)';
+    tr.appendChild(cell(r.property));
+    tr.appendChild(cell(r.adr_30d ? f.mln(r.adr_30d) : '—'));
+    tr.appendChild(cell(f.pct(r.occ_30d)));
+    tr.appendChild(cell(r.revpar_30d ? f.mln(r.revpar_30d) : '—'));
+    tb.appendChild(tr);
+  });
+  const rows = d.data.filter(r => r.adr_30d);
+  if (!rows.length) return;
+  const W = box.clientWidth || 600, rowH = 34, m = {t:6, r:56, b:20, l:110};
+  const H = m.t + m.b + rows.length * rowH;
+  const x = d3.scaleLinear([0, d3.max(rows, r => r.adr_30d) * 1.05], [m.l, W - m.r]);
+  const y = d3.scaleBand(rows.map(r => r.property), [m.t, H - m.b]).padding(0.2);
+  const y1 = d3.scaleBand(['adr','revpar'], [0, y.bandwidth()]).padding(0.08);
+  const svg = d3.select(box).append('svg').attr('width','100%').attr('viewBox',`0 0 ${W} ${H}`);
+  svg.append('g').selectAll('line').data(x.ticks(4)).join('line').attr('x1',x).attr('x2',x).attr('y1',m.t).attr('y2',H-m.b).attr('stroke','var(--cds-chart-grid)');
+  svg.append('g').attr('transform',`translate(0,${H-m.b})`).call(d3.axisBottom(x).ticks(4).tickFormat(v => (v/1e6) + 'M').tickSize(0)).attr('font-size',null).attr('font-family',null).call(g=>g.select('.domain').remove());
+  svg.append('g').selectAll('text').data(rows).join('text').attr('x', m.l - 8).attr('y', r => y(r.property) + y.bandwidth()/2 + 4).attr('text-anchor','end').text(r => sdIsTotal(r) ? 'All' : f.short(r.property));
+  const g = svg.append('g');
+  rows.forEach(r => {
+    [['adr', r.adr_30d, dash.colors[0]], ['revpar', r.revpar_30d, dash.colors[1]]].forEach(([k, v, c]) => {
+      const yy = y(r.property) + y1(k);
+      g.append('rect').attr('x', m.l).attr('y', yy).attr('width', Math.max(0, x(v) - m.l)).attr('height', y1.bandwidth()).attr('rx', 3).attr('fill', c);
+      g.append('text').attr('x', x(v) + 4).attr('y', yy + y1.bandwidth()/2 + 4).text(f.mln(v));
+    });
   });
 });
 </script>
