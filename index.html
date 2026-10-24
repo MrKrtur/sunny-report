@@ -98,34 +98,22 @@ body{margin:0;background:var(--color-bg);color:var(--color-fg);font-family:var(-
     <p id="takeaway" data-source="kpi" class="dash-skeleton">—</p>
   </header>
 
-  <div class="sd-grid">
-    <section class="sd-card" id="alerts-card">
-      <h2>Alerts and actions</h2>
-      <p class="sd-note">Red: act today. Amber: watch. Green: good news or fixed.</p>
-      <ul class="sd-alerts dash-skeleton" id="alerts" data-source="alerts"></ul>
-    </section>
-
-    <section class="sd-card" id="telegram">
-      <h2>Summary</h2>
-      <p class="sd-note">The key numbers in a few lines. Updated every morning at 10:00 Bali time</p>
-      <div class="sd-tg dash-skeleton" id="tg" data-source="kpi alerts"></div>
-    </section>
-  </div>
-
   <p class="sd-section">Occupancy</p>
   <section class="sd-card" id="kpi-card">
     <h2>Occupancy today and ahead</h2>
-    <p class="sd-note">Today: rooms sold out of all rooms. Ahead: average share of rooms sold over the period, starting today. New bookings: room nights booked (cancellations excluded). This week means Monday to today, so it is not a full week yet.</p>
+    <p class="sd-note">Today: rooms sold out of all rooms, and the share. 7, 30, 60 days: average share of rooms sold over the period, starting today. New Year: 27.12–02.01. ADR 30d: average price per sold room night over the next 30 days (OTA bookings in SiteMinder, IDR incl. taxes, before OTA commission). RevPAR 30d: ADR × occupancy, i.e. revenue per available room night. Booked this week: room nights booked Monday to today (cancellations excluded), vs the same days last week.</p>
     <div class="sd-tablebox">
       <table class="sd-table" id="kpi-table" data-source="kpi" data-row-key="property">
         <thead><tr>
           <th data-field="property">Property</th>
           <th data-field="occ_today">Today</th>
-          <th data-field="occ_7d">Next 7 days</th>
-          <th data-field="occ_30d">Next 30 days</th>
-          <th data-field="occ_60d">Next 60 days</th>
-          <th data-field="occ_ny">New Year 27.12–02.01</th>
-          <th data-field="pickup_week">New bookings this week</th>
+          <th data-field="occ_7d">7 days</th>
+          <th data-field="occ_30d">30 days</th>
+          <th data-field="occ_60d">60 days</th>
+          <th data-field="occ_ny">New Year</th>
+          <th data-field="adr_30d">ADR 30d</th>
+          <th data-field="revpar_30d">RevPAR 30d</th>
+          <th data-field="pickup_week">Booked this week</th>
           <th data-field="pickup_prev_week">Last week</th>
         </tr></thead>
         <tbody></tbody>
@@ -170,53 +158,29 @@ window.sdFmt = {
   pct: d3.format('.0%'),
   int: d3.format(','),
   mln: v => (v/1e6).toLocaleString('en-US',{maximumFractionDigits:2}) + 'M',
+  idr: v => Math.round(v/1000).toLocaleString('en-US') + 'k',
   short: p => p.replace('Sunny ','')
 };
 window.sdFail = el => { el.classList.remove('dash-skeleton'); el.innerHTML=''; const f=document.createElement('div'); f.className='sd-fail'; f.textContent='Failed to load'; el.appendChild(f); };
 window.sdIsTotal = r => r.property === 'All properties';
 </script>
 
-<script>
-dash.onData(() => {
-  const k = dash.data('kpi'), a = dash.data('alerts');
-  const take = document.getElementById('takeaway'), tg = document.getElementById('tg');
-  if (k.status === 'error') { sdFail(take); sdFail(tg); return; }
-  if (k.status !== 'ok') { take.textContent = '—'; return; }
-  take.classList.remove('dash-skeleton');
-  const f = sdFmt;
-  const props = k.data.filter(r => !sdIsTotal(r));
-  const tot = k.data.find(sdIsTotal);
-  const worst = props.slice().sort((x,y)=>x.occ_30d-y.occ_30d)[0];
-  take.textContent = `Today ${tot.occ_today} of ${tot.rooms} rooms are sold (${f.pct(tot.occ_today/tot.rooms)}). For the next 30 days only ${f.pct(tot.occ_30d)} is sold. Weakest is ${f.short(worst.property)} at ${f.pct(worst.occ_30d)}.`;
-  if (a.status !== 'ok') return;
-  tg.classList.remove('dash-skeleton');
-  const icon = {red:'🔴', amber:'🟡', green:'🟢'};
-  const lines = [(window.sdMeta&&sdMeta.summary_title)||'Sunny Daily Report', ''];
-  props.forEach(r => {
-    lines.push(`${f.short(r.property)}: today ${r.occ_today}/${r.rooms} (${f.pct(r.occ_today/r.rooms)}), 30 days ${f.pct(r.occ_30d)}, New Year ${f.pct(r.occ_ny)}`);
-  });
-  lines.push(`All: today ${f.pct(tot.occ_today/tot.rooms)}, 30 days ${f.pct(tot.occ_30d)}`);
-  lines.push('', `New bookings this week so far: ${tot.pickup_week} nights, same days last week ${tot.pickup_prev_week}`);
-  lines.push('', 'Alerts:');
-  a.data.filter(x=>x.level!=='green').forEach(x => lines.push(`${icon[x.level]} ${f.short(x.property)}: ${x.text}`));
-  tg.textContent = lines.join('\n');
-});
-</script>
+
+
+
 
 <script>
 dash.onData(() => {
-  const d = dash.data('alerts'), ul = document.getElementById('alerts');
-  if (d.status === 'error') return sdFail(ul);
-  if (d.status !== 'ok') return;
-  ul.classList.remove('dash-skeleton'); ul.innerHTML = '';
-  const cls = {red:'sd-bad', amber:'sd-warn', green:'sd-good'}, name = {red:'today', amber:'watch', green:'good'};
-  d.data.forEach(x => {
-    const li = document.createElement('li');
-    const p = document.createElement('span'); p.className = 'pill ' + cls[x.level]; p.textContent = name[x.level];
-    const t = document.createElement('div'); const pr = document.createElement('span'); pr.className='prop'; pr.textContent = x.property;
-    t.appendChild(pr); t.appendChild(document.createTextNode(x.text));
-    li.appendChild(p); li.appendChild(t); ul.appendChild(li);
-  });
+  const k = dash.data('kpi'), take = document.getElementById('takeaway');
+  if (k.status === 'error') { sdFail(take); return; }
+  if (k.status !== 'ok') { take.textContent = '—'; return; }
+  take.classList.remove('dash-skeleton');
+  const f = sdFmt, props = k.data.filter(r => !sdIsTotal(r)), tot = k.data.find(sdIsTotal);
+  const worst = props.slice().sort((x,y)=>x.occ_30d-y.occ_30d)[0];
+  let t = `Today ${tot.occ_today} of ${tot.rooms} rooms are sold (${f.pct(tot.occ_today/tot.rooms)}). Next 30 days: ${f.pct(tot.occ_30d)} sold`;
+  if (tot.adr_30d) t += `, ADR ${f.mln(tot.adr_30d)}, RevPAR ${f.mln(tot.revpar_30d)}`;
+  t += `. Weakest is ${f.short(worst.property)} at ${f.pct(worst.occ_30d)}.`;
+  take.textContent = t;
 });
 </script>
 
@@ -232,11 +196,13 @@ dash.onData(() => {
     const tr = document.createElement('tr');
     if (sdIsTotal(r)) tr.style.fontWeight = 'var(--cds-font-weight-medium)';
     tr.appendChild(cell(r.property));
-    tr.appendChild(cell(`${r.occ_today} of ${r.rooms}`, tone(r.occ_today/r.rooms)));
+    tr.appendChild(cell(`${r.occ_today} of ${r.rooms} · ${f.pct(r.occ_today/r.rooms)}`, tone(r.occ_today/r.rooms)));
     tr.appendChild(cell(f.pct(r.occ_7d), tone(r.occ_7d)));
     tr.appendChild(cell(f.pct(r.occ_30d), tone(r.occ_30d)));
     tr.appendChild(cell(f.pct(r.occ_60d), tone(r.occ_60d)));
     tr.appendChild(cell(f.pct(r.occ_ny), tone(r.occ_ny)));
+    tr.appendChild(cell(r.adr_30d ? f.mln(r.adr_30d) : '—'));
+    tr.appendChild(cell(r.revpar_30d ? f.mln(r.revpar_30d) : '—'));
     tr.appendChild(cell(f.int(r.pickup_week) + ' nights', r.pickup_week < r.pickup_prev_week ? 'sd-bad' : 'sd-good'));
     tr.appendChild(cell(f.int(r.pickup_prev_week) + ' nights'));
     tb.appendChild(tr);
