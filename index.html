@@ -36,7 +36,7 @@ body{margin:0;background:var(--color-bg);color:var(--color-fg);font-family:var(-
   var light=['#2f6fb3','#d9822b','#3a9a5b','#a855b5','#c0392b','#7a8b2a','#1f9aa3','#8c6d4f'];
   var dark=['#6aa4e0','#f0a457','#6cc58c','#c98ad6','#e5675a','#b4c25a','#4fc4cc','#c4a07e'];
   var mq=window.matchMedia('(prefers-color-scheme: dark)');
-  var store={}, fns=[], ids=['kpi','forward','pickup','channels','alerts','rates'];
+  var store={}, fns=[], ids=['kpi','forward','pickup','channels','alerts','rates','history'];
   ids.forEach(function(id){store[id]={status:'loading',data:[],message:'',refreshing:false,meta:[]};});
   function run(){window.dash.colors=mq.matches?dark:light;fns.forEach(function(f){try{f();}catch(e){console.error(e);}});}
   window.dash={colors:mq.matches?dark:light,data:function(id){return store[id]||{status:'missing',data:[]};},onData:function(fn){fns.push(fn);try{fn();}catch(e){console.error(e);}}};
@@ -81,6 +81,10 @@ body{margin:0;background:var(--color-bg);color:var(--color-fg);font-family:var(-
 .sd-bar .track{height:14px;border-radius:4px;background:var(--cds-chart-grid);overflow:hidden}
 .sd-bar .fill{height:100%;border-radius:4px}
 .sd-bar .val{min-width:6.5rem;text-align:right}
+.sd-hist-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,26rem),1fr));gap:var(--cds-gap-md)}
+.sd-hist-grid h3{margin:0 0 var(--cds-gap-xs);font-size:var(--cds-font-size-body);font-weight:var(--cds-font-weight-medium)}
+.sd-table td .sub{display:block;color:var(--color-fg-muted);font-size:var(--cds-font-size-caption)}
+.sd-table td .chg{font-size:var(--cds-font-size-caption);margin-left:.3rem}
 .sd-foot{color:var(--color-fg-muted);font-size:var(--cds-font-size-caption);max-width:80ch}
 [data-dash-source-state=empty]{color:transparent}
 [data-dash-source-state=refreshing]{opacity:.5;transition:opacity var(--cds-dur-slow)}
@@ -139,6 +143,20 @@ body{margin:0;background:var(--color-bg);color:var(--color-fg);font-family:var(-
     <p class="sd-note">Chart: next 30 days.</p>
     <div class="sd-legend" id="rev-legend"><span><i style="background:var(--rev-adr)"></i>ADR</span><span><i style="background:var(--rev-revpar)"></i>RevPAR</span></div>
     <div class="sd-chart" id="rev-chart" data-source="kpi"></div>
+  </section>
+
+
+  <p class="sd-section">Last 12 months</p>
+  <section class="sd-card" id="hist-card">
+    <h2>RevPAR and occupancy by month</h2>
+    <p class="sd-note">Source: VHP, all bookings including direct. Room revenue is net of 10% tax, so ADR here is lower than the SiteMinder ADR above. October is 1–24 Oct. VHP history starts in November 2025 for Samudra and Apart 2, in January 2026 for Cuddles, and in February 2026 for Batu Bolong and Berawa (their January revenue in VHP is not valid). Berawa: the number of rooms changed during the year, so its occupancy and RevPAR are shown only for October. No data for the same months last year, so changes are shown against the previous month. "All" is Samudra, Cuddles, Batu Bolong and Apart 2 together, from February 2026.</p>
+    <div class="sd-legend" id="hist-legend" data-source="history"></div>
+    <div class="sd-hist-grid">
+      <div><h3>RevPAR, IDR</h3><div class="sd-chart" id="hist-revpar" data-source="history"></div></div>
+      <div><h3>Occupancy</h3><div class="sd-chart" id="hist-occ" data-source="history"></div></div>
+    </div>
+    <h3 style="margin:var(--cds-gap-sm) 0 0;font-size:var(--cds-font-size-body);font-weight:var(--cds-font-weight-medium)">Last 6 months: RevPAR, change vs previous month, occupancy and ADR</h3>
+    <div class="sd-tablebox"><table class="sd-table" id="hist-table" data-source="history"><thead></thead><tbody></tbody></table></div>
   </section>
 
   <section class="sd-card" id="forward-card">
@@ -339,6 +357,76 @@ dash.onData(() => {
     .attr('fill', r => dash.colors[props.indexOf(r.property)])
     .on('mousemove', (ev, r) => { tip.hidden=false; tip.innerHTML=''; const h=document.createElement('div'); h.className='d'; h.textContent='Week of '+fmtW(r.week); const l=document.createElement('div'); l.textContent=`${sdFmt.short(r.property)}: ${r.nights} nights`; tip.appendChild(h); tip.appendChild(l); const px=(x0(r.week)+x1(r.property))/W*box.clientWidth; tip.style.left=Math.min(Math.max(0,px-60), box.clientWidth-150)+'px'; tip.style.top='4px'; })
     .on('mouseleave', () => tip.hidden = true);
+});
+</script>
+
+
+<script>
+dash.onData(() => {
+  const d = dash.data('history'), leg = document.getElementById('hist-legend');
+  const boxes = {revpar: document.getElementById('hist-revpar'), occ: document.getElementById('hist-occ')};
+  const tbl = document.getElementById('hist-table');
+  leg.innerHTML = ''; boxes.revpar.innerHTML = ''; boxes.occ.innerHTML = ''; tbl.tHead.innerHTML = ''; tbl.tBodies[0].innerHTML = '';
+  if (d.status === 'error') { sdFail(boxes.revpar); sdFail(boxes.occ); return; }
+  if (d.status !== 'ok') return;
+  const f = sdFmt, rows = d.data;
+  const props = Array.from(new Set(rows.map(r => r.property)));
+  const months = Array.from(new Set(rows.map(r => r.month))).sort();
+  const mLabel = m => { const [y, mm] = m.split('-'); return ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][+mm-1] + (mm === '01' || m === months[0] ? ' ' + y.slice(2) : ''); };
+  props.forEach((p,i) => { const s=document.createElement('span'); const sw=document.createElement('i'); sw.style.background=dash.colors[i]; s.appendChild(sw); s.appendChild(document.createTextNode(f.short(p))); leg.appendChild(s); });
+  const draw = (box, key, yFmt, yMax) => {
+    const W = box.clientWidth || 500, H = 230, m = {t:10, r:12, b:24, l:44};
+    const x = d3.scalePoint(months, [m.l, W - m.r]);
+    const y = d3.scaleLinear([0, yMax], [H - m.b, m.t]).nice();
+    const svg = d3.select(box).append('svg').attr('width','100%').attr('viewBox',`0 0 ${W} ${H}`);
+    svg.append('g').selectAll('line').data(y.ticks(4)).join('line').attr('x1',m.l).attr('x2',W-m.r).attr('y1',y).attr('y2',y).attr('stroke','var(--cds-chart-grid)');
+    svg.append('g').attr('transform',`translate(${m.l},0)`).call(d3.axisLeft(y).ticks(4).tickFormat(yFmt).tickSize(0)).attr('font-size',null).attr('font-family',null).call(g=>g.select('.domain').remove());
+    const step = W < 420 ? 3 : W < 640 ? 2 : 1;
+    svg.append('g').attr('transform',`translate(0,${H-m.b})`).call(d3.axisBottom(x).tickValues(months.filter((v,i)=>i%step===0)).tickFormat(mLabel).tickSize(0)).attr('font-size',null).attr('font-family',null).call(g=>g.select('.domain').attr('stroke','var(--cds-chart-axis)'));
+    props.forEach((p,i) => {
+      const s = months.map(mo => rows.find(r => r.property === p && r.month === mo)).filter(r => r && r[key] != null);
+      const line = d3.line().defined((r, j, arr) => true).x(r => x(r.month)).y(r => y(r[key]));
+      svg.append('path').datum(s).attr('fill','none').attr('stroke',dash.colors[i]).attr('stroke-width',2).attr('stroke-linejoin','round').attr('d', line);
+      svg.append('g').selectAll('circle').data(s).join('circle').attr('r', 2.5).attr('cx', r => x(r.month)).attr('cy', r => y(r[key])).attr('fill', dash.colors[i]);
+    });
+    const tip = document.createElement('div'); tip.className='sd-tip'; tip.hidden = true; box.appendChild(tip);
+    svg.append('rect').attr('x',m.l).attr('y',m.t).attr('width',W-m.l-m.r).attr('height',H-m.t-m.b).attr('fill','transparent')
+      .on('mousemove', (ev) => {
+        const [mx] = d3.pointer(ev);
+        const mo = months.reduce((a,b) => Math.abs(x(b)-mx) < Math.abs(x(a)-mx) ? b : a);
+        tip.hidden = false; tip.innerHTML = '';
+        const h = document.createElement('div'); h.className='d'; h.textContent = mLabel(mo) + (mo.endsWith('-10') ? ' (1–24)' : ''); tip.appendChild(h);
+        props.forEach(p => { const r = rows.find(z => z.property === p && z.month === mo); if (r && r[key] != null) { const l=document.createElement('div'); l.textContent = `${f.short(p)}: ${key==='occ' ? f.pct(r.occ) : f.mln(r.revpar)}`; tip.appendChild(l); } });
+        const px = x(mo) / W * box.clientWidth;
+        tip.style.left = Math.min(Math.max(0, px - 70), box.clientWidth - 170) + 'px'; tip.style.top = '4px';
+      })
+      .on('mouseleave', () => tip.hidden = true);
+  };
+  draw(boxes.revpar, 'revpar', v => (v/1e6) + 'M', d3.max(rows, r => r.revpar) * 1.05);
+  draw(boxes.occ, 'occ', d3.format('.0%'), 1);
+  const last6 = months.slice(-6);
+  const hr = document.createElement('tr');
+  ['Property', ...last6.map(mo => mLabel(mo).split(' ')[0] + (mo.endsWith('-10') ? ' 1–24' : ''))].forEach(t => { const th = document.createElement('th'); th.textContent = t; hr.appendChild(th); });
+  tbl.tHead.appendChild(hr);
+  props.forEach(p => {
+    const tr = document.createElement('tr');
+    const td0 = document.createElement('td'); td0.textContent = p; tr.appendChild(td0);
+    last6.forEach(mo => {
+      const r = rows.find(z => z.property === p && z.month === mo);
+      const prev = rows.find(z => z.property === p && z.month === months[months.indexOf(mo)-1]);
+      const td = document.createElement('td');
+      if (!r || r.room_nights == null) { td.textContent = '—'; tr.appendChild(td); return; }
+      const main = document.createElement('span'); main.textContent = r.revpar != null ? f.mln(r.revpar) : '—'; td.appendChild(main);
+      if (r.revpar != null && prev && prev.revpar) {
+        const ch = r.revpar / prev.revpar - 1; const c = document.createElement('span');
+        c.className = 'chg ' + (ch >= 0 ? 'sd-good' : 'sd-bad'); c.textContent = (ch >= 0 ? '▲' : '▼') + Math.abs(Math.round(ch*100)) + '%'; td.appendChild(c);
+      }
+      const sub = document.createElement('span'); sub.className = 'sub';
+      sub.textContent = (r.occ != null ? f.pct(r.occ) : r.room_nights + ' nights') + ' · ADR ' + (r.adr ? f.mln(r.adr) : '—');
+      td.appendChild(sub); tr.appendChild(td);
+    });
+    tbl.tBodies[0].appendChild(tr);
+  });
 });
 </script>
 
