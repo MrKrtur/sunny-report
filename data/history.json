@@ -571,9 +571,9 @@
   "room_nights": 278,
   "revenue": 502260922,
   "adr": 1806694,
-  "occ": 0.9653,
-  "revpar": 1743962,
-  "note": "1-24 Oct"
+  "occ": null,
+  "revpar": null,
+  "note": "room count changed (12 rooms only from 19 Oct); 1-24 Oct"
  },
  {
   "month": "2025-11",
