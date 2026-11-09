@@ -149,7 +149,7 @@ body{margin:0;background:var(--color-bg);color:var(--color-fg);font-family:var(-
   <p class="sd-section">Last 12 months</p>
   <section class="sd-card" id="hist-card">
     <h2>RevPAR and occupancy by month</h2>
-    <p class="sd-note">Source: VHP, all bookings including direct. Room revenue is net of 10% tax, so ADR here is lower than the SiteMinder ADR above. October is 1–24 Oct. VHP history starts in November 2025 for Samudra and Apart 2, in January 2026 for Cuddles, and in February 2026 for Batu Bolong and Berawa (their January revenue in VHP is not valid). Berawa: units left one by one during the year and only 12 rooms remain from 19 October 2026, so its occupancy and RevPAR will be shown from November 2026; until then only room nights and ADR. No data for the same months last year, so changes are shown against the previous month. "All" is Samudra, Cuddles, Batu Bolong and Apart 2 together, from February 2026.</p>
+    <p class="sd-note">Source: VHP, all bookings including direct. Room revenue is net of 10% tax, so ADR here is lower than the SiteMinder ADR above. October is the full month. November is month to date, 1–8 Nov. VHP history starts in November 2025 for Samudra and Apart 2, in January 2026 for Cuddles, and in February 2026 for Batu Bolong and Berawa (their January revenue in VHP is not valid). Berawa: units left one by one during the year and only 12 rooms remain from 19 October 2026, so its occupancy and RevPAR will be shown from November 2026; until then only room nights and ADR. No data for the same months last year, so changes are shown against the previous month. "All" is Samudra, Cuddles, Batu Bolong and Apart 2 together, from February 2026.</p>
     <div class="sd-legend" id="hist-legend" data-source="history"></div>
     <div class="sd-hist-grid">
       <div><h3>RevPAR, IDR</h3><div class="sd-chart" id="hist-revpar" data-source="history"></div></div>
@@ -395,7 +395,7 @@ dash.onData(() => {
         const [mx] = d3.pointer(ev);
         const mo = months.reduce((a,b) => Math.abs(x(b)-mx) < Math.abs(x(a)-mx) ? b : a);
         tip.hidden = false; tip.innerHTML = '';
-        const h = document.createElement('div'); h.className='d'; h.textContent = mLabel(mo) + (mo.endsWith('-10') ? ' (1–24)' : ''); tip.appendChild(h);
+        const h = document.createElement('div'); h.className='d'; h.textContent = mLabel(mo) + (mo === '2026-11' ? ' (1–8)' : ''); tip.appendChild(h);
         props.forEach(p => { const r = rows.find(z => z.property === p && z.month === mo); if (r && r[key] != null) { const l=document.createElement('div'); l.textContent = `${f.short(p)}: ${key==='occ' ? f.pct(r.occ) : f.mln(r.revpar)}`; tip.appendChild(l); } });
         const px = x(mo) / W * box.clientWidth;
         tip.style.left = Math.min(Math.max(0, px - 70), box.clientWidth - 170) + 'px'; tip.style.top = '4px';
@@ -406,7 +406,7 @@ dash.onData(() => {
   draw(boxes.occ, 'occ', d3.format('.0%'), 1);
   const last6 = months.slice(-6);
   const hr = document.createElement('tr');
-  ['Property', ...last6.map(mo => mLabel(mo).split(' ')[0] + (mo.endsWith('-10') ? ' 1–24' : ''))].forEach(t => { const th = document.createElement('th'); th.textContent = t; hr.appendChild(th); });
+  ['Property', ...last6.map(mo => mLabel(mo).split(' ')[0] + (mo === '2026-11' ? ' 1–8' : ''))].forEach(t => { const th = document.createElement('th'); th.textContent = t; hr.appendChild(th); });
   tbl.tHead.appendChild(hr);
   props.forEach(p => {
     const tr = document.createElement('tr');
