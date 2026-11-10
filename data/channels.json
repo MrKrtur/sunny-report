@@ -1,1 +1,34 @@
-[{"channel": "Booking.com", "nights": 184}, {"channel": "Agoda", "nights": 48}, {"channel": "Airbnb", "nights": 46}, {"channel": "Expedia", "nights": 18}, {"channel": "Hoterip", "nights": 14}, {"channel": "Trip.com", "nights": 5}, {"channel": "Traveloka", "nights": 2}, {"channel": "Tiket.com", "nights": 1}]
+[
+ {
+  "channel": "Booking.com",
+  "nights": 213
+ },
+ {
+  "channel": "Airbnb",
+  "nights": 65
+ },
+ {
+  "channel": "Agoda",
+  "nights": 54
+ },
+ {
+  "channel": "Expedia",
+  "nights": 21
+ },
+ {
+  "channel": "Hoterip",
+  "nights": 15
+ },
+ {
+  "channel": "Trip.com",
+  "nights": 5
+ },
+ {
+  "channel": "Traveloka",
+  "nights": 2
+ },
+ {
+  "channel": "Tiket.com",
+  "nights": 1
+ }
+]
