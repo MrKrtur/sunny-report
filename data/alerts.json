@@ -1,37 +1,9 @@
 [
- {
-  "level": "red",
-  "property": "Sunny Samudra",
-  "text": "Next 30 days only 20% sold; New Year 14%."
- },
- {
-  "level": "red",
-  "property": "Sunny Apart 2",
-  "text": "Next 30 days only 26% sold; New Year 7%."
- },
- {
-  "level": "amber",
-  "property": "Sunny Cuddles",
-  "text": "New Year only 10% sold; next 30 days 40%."
- },
- {
-  "level": "amber",
-  "property": "Sunny Berawa",
-  "text": "New bookings slowed: 6 nights this week vs 25 same days last week."
- },
- {
-  "level": "green",
-  "property": "All properties",
-  "text": "New bookings this week so far 73 nights vs 53 same days last week."
- },
- {
-  "level": "green",
-  "property": "Sunny Berawa",
-  "text": "Last night fully sold (12 of 12); New Year 63%."
- },
- {
-  "level": "green",
-  "property": "Sunny Batu Bolong",
-  "text": "New Year 61% sold; ADR 30 days 2.82M IDR."
- }
+ {"level": "red", "property": "Sunny Samudra", "text": "Next 30 days only 20% sold; New Year 14%."},
+ {"level": "red", "property": "Sunny Apart 2", "text": "Next 30 days only 25% sold; New Year 7%."},
+ {"level": "amber", "property": "Sunny Cuddles", "text": "New Year only 10% sold; next 30 days 38%."},
+ {"level": "amber", "property": "Sunny Berawa", "text": "New bookings slowed: 15 nights this week vs 46 same days last week."},
+ {"level": "amber", "property": "Sunny Batu Bolong", "text": "No new bookings this week so far (7 same days last week)."},
+ {"level": "green", "property": "All properties", "text": "New bookings this week so far 113 nights vs 92 same days last week."},
+ {"level": "green", "property": "Sunny Batu Bolong", "text": "New Year 61% sold; ADR 30 days 2.84M IDR."}
 ]

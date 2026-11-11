@@ -1,11 +1,11 @@
 [
  {
   "channel": "Booking.com",
-  "nights": 213
+  "nights": 246
  },
  {
   "channel": "Airbnb",
-  "nights": 65
+  "nights": 75
  },
  {
   "channel": "Agoda",
@@ -13,7 +13,7 @@
  },
  {
   "channel": "Expedia",
-  "nights": 21
+  "nights": 18
  },
  {
   "channel": "Hoterip",
