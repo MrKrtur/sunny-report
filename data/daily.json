@@ -970,5 +970,59 @@
   "occ": 0.707,
   "adr": 1399021,
   "revpar": 988963
+ },
+ {
+  "date": "2026-11-12",
+  "property": "Sunny Samudra",
+  "rooms": 23,
+  "rooms_sold": 14,
+  "occ": 0.609,
+  "adr": 1336217,
+  "revpar": 813349
+ },
+ {
+  "date": "2026-11-12",
+  "property": "Sunny Cuddles",
+  "rooms": 21,
+  "rooms_sold": 14,
+  "occ": 0.667,
+  "adr": 1100607,
+  "revpar": 733738
+ },
+ {
+  "date": "2026-11-12",
+  "property": "Sunny Batu Bolong",
+  "rooms": 12,
+  "rooms_sold": 7,
+  "occ": 0.583,
+  "adr": 3213163,
+  "revpar": 1874345
+ },
+ {
+  "date": "2026-11-12",
+  "property": "Sunny Berawa",
+  "rooms": 12,
+  "rooms_sold": 9,
+  "occ": 0.75,
+  "adr": 2077556,
+  "revpar": 1558167
+ },
+ {
+  "date": "2026-11-12",
+  "property": "Sunny Apart 2",
+  "rooms": 48,
+  "rooms_sold": 24,
+  "occ": 0.5,
+  "adr": 1164427,
+  "revpar": 582214
+ },
+ {
+  "date": "2026-11-12",
+  "property": "All properties",
+  "rooms": 116,
+  "rooms_sold": 68,
+  "occ": 0.586,
+  "adr": 1370805,
+  "revpar": 890103
  }
 ]

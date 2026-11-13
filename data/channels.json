@@ -1,7 +1,7 @@
 [
  {
   "channel": "Booking.com",
-  "nights": 246
+  "nights": 291
  },
  {
   "channel": "Airbnb",
@@ -9,19 +9,19 @@
  },
  {
   "channel": "Agoda",
-  "nights": 54
- },
- {
-  "channel": "Expedia",
-  "nights": 18
- },
- {
-  "channel": "Hoterip",
-  "nights": 15
+  "nights": 62
  },
  {
   "channel": "Trip.com",
-  "nights": 5
+  "nights": 25
+ },
+ {
+  "channel": "Hoterip",
+  "nights": 24
+ },
+ {
+  "channel": "Expedia",
+  "nights": 20
  },
  {
   "channel": "Traveloka",

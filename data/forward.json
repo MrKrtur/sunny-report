@@ -1,39 +1,27 @@
 [
  {
-  "date": "2026-11-11",
-  "property": "Sunny Samudra",
-  "rooms_sold": 16,
-  "occ": 0.696
- },
- {
-  "date": "2026-11-12",
-  "property": "Sunny Samudra",
-  "rooms_sold": 13,
-  "occ": 0.565
- },
- {
   "date": "2026-11-13",
   "property": "Sunny Samudra",
-  "rooms_sold": 11,
-  "occ": 0.478
+  "rooms_sold": 14,
+  "occ": 0.609
  },
  {
   "date": "2026-11-14",
+  "property": "Sunny Samudra",
+  "rooms_sold": 12,
+  "occ": 0.522
+ },
+ {
+  "date": "2026-11-15",
   "property": "Sunny Samudra",
   "rooms_sold": 9,
   "occ": 0.391
  },
  {
-  "date": "2026-11-15",
-  "property": "Sunny Samudra",
-  "rooms_sold": 7,
-  "occ": 0.304
- },
- {
   "date": "2026-11-16",
   "property": "Sunny Samudra",
-  "rooms_sold": 8,
-  "occ": 0.348
+  "rooms_sold": 9,
+  "occ": 0.391
  },
  {
   "date": "2026-11-17",
@@ -98,14 +86,14 @@
  {
   "date": "2026-11-27",
   "property": "Sunny Samudra",
-  "rooms_sold": 3,
-  "occ": 0.13
+  "rooms_sold": 4,
+  "occ": 0.174
  },
  {
   "date": "2026-11-28",
   "property": "Sunny Samudra",
-  "rooms_sold": 3,
-  "occ": 0.13
+  "rooms_sold": 4,
+  "occ": 0.174
  },
  {
   "date": "2026-11-29",
@@ -116,26 +104,26 @@
  {
   "date": "2026-11-30",
   "property": "Sunny Samudra",
-  "rooms_sold": 1,
-  "occ": 0.043
+  "rooms_sold": 2,
+  "occ": 0.087
  },
  {
   "date": "2026-12-01",
   "property": "Sunny Samudra",
-  "rooms_sold": 2,
-  "occ": 0.087
+  "rooms_sold": 3,
+  "occ": 0.13
  },
  {
   "date": "2026-12-02",
   "property": "Sunny Samudra",
-  "rooms_sold": 1,
-  "occ": 0.043
+  "rooms_sold": 2,
+  "occ": 0.087
  },
  {
   "date": "2026-12-03",
   "property": "Sunny Samudra",
-  "rooms_sold": 2,
-  "occ": 0.087
+  "rooms_sold": 3,
+  "occ": 0.13
  },
  {
   "date": "2026-12-04",
@@ -360,16 +348,16 @@
   "occ": 0.043
  },
  {
-  "date": "2026-11-11",
-  "property": "Sunny Cuddles",
-  "rooms_sold": 16,
-  "occ": 0.762
+  "date": "2027-01-10",
+  "property": "Sunny Samudra",
+  "rooms_sold": 1,
+  "occ": 0.043
  },
  {
-  "date": "2026-11-12",
-  "property": "Sunny Cuddles",
-  "rooms_sold": 14,
-  "occ": 0.667
+  "date": "2027-01-11",
+  "property": "Sunny Samudra",
+  "rooms_sold": 2,
+  "occ": 0.087
  },
  {
   "date": "2026-11-13",
@@ -720,16 +708,16 @@
   "occ": 0.095
  },
  {
-  "date": "2026-11-11",
-  "property": "Sunny Batu Bolong",
-  "rooms_sold": 8,
-  "occ": 0.667
+  "date": "2027-01-10",
+  "property": "Sunny Cuddles",
+  "rooms_sold": 0,
+  "occ": 0.0
  },
  {
-  "date": "2026-11-12",
-  "property": "Sunny Batu Bolong",
-  "rooms_sold": 7,
-  "occ": 0.583
+  "date": "2027-01-11",
+  "property": "Sunny Cuddles",
+  "rooms_sold": 0,
+  "occ": 0.0
  },
  {
   "date": "2026-11-13",
@@ -1080,16 +1068,16 @@
   "occ": 0.083
  },
  {
-  "date": "2026-11-11",
-  "property": "Sunny Berawa",
-  "rooms_sold": 12,
-  "occ": 1.0
+  "date": "2027-01-10",
+  "property": "Sunny Batu Bolong",
+  "rooms_sold": 1,
+  "occ": 0.083
  },
  {
-  "date": "2026-11-12",
-  "property": "Sunny Berawa",
-  "rooms_sold": 9,
-  "occ": 0.75
+  "date": "2027-01-11",
+  "property": "Sunny Batu Bolong",
+  "rooms_sold": 1,
+  "occ": 0.083
  },
  {
   "date": "2026-11-13",
@@ -1440,16 +1428,16 @@
   "occ": 0.167
  },
  {
-  "date": "2026-11-11",
-  "property": "Sunny Apart 2",
-  "rooms_sold": 27,
-  "occ": 0.562
+  "date": "2027-01-10",
+  "property": "Sunny Berawa",
+  "rooms_sold": 1,
+  "occ": 0.083
  },
  {
-  "date": "2026-11-12",
-  "property": "Sunny Apart 2",
-  "rooms_sold": 24,
-  "occ": 0.5
+  "date": "2027-01-11",
+  "property": "Sunny Berawa",
+  "rooms_sold": 1,
+  "occ": 0.083
  },
  {
   "date": "2026-11-13",
@@ -1798,5 +1786,17 @@
   "property": "Sunny Apart 2",
   "rooms_sold": 3,
   "occ": 0.062
+ },
+ {
+  "date": "2027-01-10",
+  "property": "Sunny Apart 2",
+  "rooms_sold": 0,
+  "occ": 0.0
+ },
+ {
+  "date": "2027-01-11",
+  "property": "Sunny Apart 2",
+  "rooms_sold": 0,
+  "occ": 0.0
  }
 ]
